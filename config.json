@@ -1,0 +1,38 @@
+{
+  "chains": [
+    {
+      "name": "platon",
+      "type": "ethereum",
+      "id": "2",
+      "endpoint": "",
+      "from": "",
+      "opts": {
+        "bridge": "",
+        "erc20Handler": "",
+        "http": "true",
+        "prefix": "lat",
+        "networkId": "201030"
+      }
+    },
+    {
+      "name": "polkadot",
+      "type": "substrate",
+      "id": "1",
+      "endpoint": "",
+      "from": "",
+      "opts": {
+        "MultiSignAddress": "",
+        "TotalRelayer": "",
+        "CurrentRelayerNumber": "",
+        "MultiSignThreshold": "",
+        "OtherRelayer1": "",
+        "OtherRelayer2": "",
+        "OtherRelayer3": "",
+        "OtherRelayer4": "",
+        "ResourceId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "MaxWeight": "22698000000",
+        "DestId": "2"
+      }
+    }
+  ]
+}
