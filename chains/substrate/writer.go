@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ChainSafe/log15"
+	"github.com/Platdot-network/Platdot/config"
 	utils "github.com/Platdot-network/Platdot/shared/substrate"
 	gsrpc "github.com/centrifuge/go-substrate-rpc-client/v2"
 	"github.com/centrifuge/go-substrate-rpc-client/v2/rpc/author"
@@ -94,8 +95,17 @@ func (w *writer) ResolveMessage(m msg.Message) bool {
 			cost := time.Since(start)
 			fmt.Printf("Relayer #%v finish depositNonce %v cost %v\n", w.relayer.currentRelayer, m.DepositNonce, cost)
 		}()
-
+		retryTimes := BlockRetryLimit
 		for {
+			retryTimes--
+			// No more retries, stop RedeemTx
+			if retryTimes < BlockRetryLimit / 2 {
+				w.log.Warn("There may be a problem with the deal", "RetryTimes", retryTimes)
+			}
+			if retryTimes == 0 {
+				w.log.Error("Redeem Tx failed, try too many times\n")
+				break
+			}
 			isFinished, currentTx := w.redeemTx(m)
 			if isFinished {
 				var mutex sync.Mutex
@@ -120,8 +130,6 @@ func (w *writer) ResolveMessage(m msg.Message) bool {
 					delete(w.messages, dm)
 
 					mutex.Unlock()
-
-					w.log.Info("finish a redeemTx", "DepositNonce", m.DepositNonce)
 					break
 				}
 
@@ -149,12 +157,11 @@ func (w *writer) ResolveMessage(m msg.Message) bool {
 					delete(w.messages, dm)
 
 					mutex.Unlock()
-
-					w.log.Info("finish a redeemTx", "DepositNonce", m.DepositNonce)
 					break
 				}
 			}
 		}
+		w.log.Info("finish a redeemTx", "DepositNonce", m.DepositNonce)
 	}()
 	return true
 }
@@ -208,7 +215,7 @@ func (w *writer) redeemTx(m msg.Message) (bool, MultiSignTx) {
 	actualAmount := big.NewInt(0)
 
 	// Get parameters of Balances.Transfer Call
-	if m.Destination == Kusama || m.Destination == Polkadot{
+	if m.Destination == config.Kusama || m.Destination == config.Polkadot {
 		// Convert AKSM amount to KSM amount
 		receiveAmount := big.NewInt(0).Div(amount, big.NewInt(oneToken))
 
@@ -223,9 +230,9 @@ func (w *writer) redeemTx(m msg.Message) (bool, MultiSignTx) {
 			return true, AmountError
 		}
 
-		if m.Destination == Kusama {
+		if m.Destination == config.Kusama {
 			fmt.Printf("AKSM to KSM, Amount is %v, Fee is %v, Actual_KSM_Amount = %v\n", receiveAmount, fee, actualAmount)
-		} else if m.Destination == Polkadot {
+		} else if m.Destination == config.Polkadot {
 			fmt.Printf("PDOT to DOT, Amount is %v, Fee is %v, Actual_DOT_Amount = %v\n", receiveAmount, fee, actualAmount)
 		}
 
@@ -241,7 +248,7 @@ func (w *writer) redeemTx(m msg.Message) (bool, MultiSignTx) {
 		if err != nil {
 			w.log.Error("New Balances.Transfer_Keep_Alive Call err", "err", err)
 		}
-	} else if m.Destination == ChainX {
+	} else if m.Destination == config.ChainX {
 		/// Convert AXBTC amount to XBTC amount
 		actualAmount.Div(amount, big.NewInt(oneXToken))
 
@@ -392,11 +399,11 @@ func (w *writer) submitTx(c types.Call) {
 		ext := types.NewExtrinsic(c)
 
 		switch w.listener.chainId {
-		case Kusama:
+		case config.Kusama:
 			err = ext.MultiSign(w.relayer.kr, o)
-		case Polkadot:
+		case config.Polkadot:
 			err = ext.MultiSign(w.relayer.kr, o)
-		case ChainX:
+		case config.ChainX:
 			/// ChainX XBTC2.0 MultiAddress
 			err = ext.MultiSign(w.relayer.kr, o)
 			/// ChainX XBTC1.0 Address

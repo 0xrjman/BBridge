@@ -15,15 +15,20 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/rjman-self/platdot-utils/crypto/secp256k1"
 	"math/big"
-	"os"
-	"strconv"
 	"sync"
 	"time"
+)
+
+const(
+	ChainIdAlayaTestNet				uint64 = 201030
+	ChainIdAlayaMainNet				uint64 = 201018
+	ChainIdPlatONMainNet    		uint64 = 210309
 )
 
 var BlockRetryInterval = time.Second * 5
 
 type Connection struct {
+	chainId       uint64
 	endpoint      string
 	http          bool
 	kp            *secp256k1.Keypair
@@ -40,8 +45,9 @@ type Connection struct {
 }
 
 // NewConnection returns an uninitialized connection, must call Connection.Connect() before using.
-func NewConnection(endpoint string, http bool, kp *secp256k1.Keypair, log log15.Logger, gasLimit, gasPrice *big.Int, gasMultiplier *big.Float) *Connection {
+func NewConnection(chainId uint64, endpoint string, http bool, kp *secp256k1.Keypair, log log15.Logger, gasLimit, gasPrice *big.Int, gasMultiplier *big.Float) *Connection {
 	return &Connection{
+		chainId:       chainId,
 		endpoint:      endpoint,
 		http:          http,
 		kp:            kp,
@@ -52,6 +58,7 @@ func NewConnection(endpoint string, http bool, kp *secp256k1.Keypair, log log15.
 		stop:          make(chan int),
 	}
 }
+
 
 // Connect starts the ethereum WS connection
 func (c *Connection) Connect() error {
@@ -68,7 +75,20 @@ func (c *Connection) Connect() error {
 	if err != nil {
 		return err
 	}
+
 	c.conn = ethclient.NewClient(rpcClient)
+	/// Set rpc chainId
+	c.conn.SetChainID(c.chainId)
+	switch c.chainId {
+	case ChainIdAlayaMainNet:
+		c.conn.SetChainName("alaya")
+	case ChainIdAlayaTestNet:
+		c.conn.SetChainName("alaya-test")
+	case ChainIdPlatONMainNet:
+		c.conn.SetChainName("platon")
+	default:
+		c.conn.SetChainName("alaya")
+	}
 
 	// Construct tx opts, call opts, and nonce mechanism
 	opts, _, err := c.newTransactOpts(big.NewInt(0), c.gasLimit, c.maxGasPrice)
@@ -91,10 +111,7 @@ func (c *Connection) newTransactOpts(value, gasLimit, gasPrice *big.Int) (*bind.
 		return nil, 0, err
 	}
 
-	id := os.Getenv("networkId")
-	chainId, _ := strconv.Atoi(id)
-
-	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, big.NewInt(int64(chainId)))
+	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, big.NewInt(int64(c.conn.GetChainID())))
 	if err != nil {
 		return nil, 0, err
 	}

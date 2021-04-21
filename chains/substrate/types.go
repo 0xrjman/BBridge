@@ -12,16 +12,6 @@ import (
 	"math/big"
 )
 
-
-/// ChainId Type
-const (
-	Alaya			msg.ChainId = 2
-	Kusama			msg.ChainId = 1
-	ChainX			msg.ChainId = 3
-	PlatON			msg.ChainId = 4
-	Polkadot		msg.ChainId = 5
-)
-
 /// AssetId Type
 const (
 	XBTC			xevents.AssetId = 1

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/JFJun/go-substrate-crypto/ss58"
+	"github.com/Platdot-network/Platdot/config"
 	"github.com/rjman-self/substrate-go/expand/base"
 	"github.com/rjman-self/substrate-go/models"
 	"strconv"
@@ -168,11 +169,11 @@ func (l *listener) pollBlocks() error {
 			}
 			if currentBlock % 5 == 0 {
 				switch l.chainId {
-				case Kusama:
+				case config.Kusama:
 					fmt.Printf("Kusama Block is #%v\n", currentBlock)
-				case ChainX:
+				case config.ChainX:
 					fmt.Printf("ChainX Block is #%v\n", currentBlock)
-				case Polkadot:
+				case config.Polkadot:
 					fmt.Printf("Polkadot Block is #%v\n", currentBlock)
 				default:
 					fmt.Printf("Sub Block is #%v\n", currentBlock)
@@ -243,27 +244,28 @@ func (l *listener) processBlock(hash types.Hash) error {
 				DestAddress: e.MultiSigAsMulti.DestAddress,
 				DestAmount:  e.MultiSigAsMulti.DestAmount,
 			}
-
-			if e.Type == base.AsMultiNew {
+			fromCheck := l.checkFromAddress(e)
+			toCheck := l.checkToAddress(e)
+			if e.Type == base.AsMultiNew && fromCheck {
 				l.log.Info("Find a MultiSign New extrinsic", "Block", currentBlock)
 				/// Mark New a MultiSign Transfer
 				l.markNew(e)
 			}
 
-			if e.Type == base.AsMultiApprove {
+			if e.Type == base.AsMultiApprove && fromCheck {
 				l.log.Info("Find a MultiSign Approve extrinsic", "Block", currentBlock)
 				/// Mark Vote(Approve)
 				l.markVote(msTx, e)
 			}
 
-			if e.Type == base.AsMultiExecuted {
+			if e.Type == base.AsMultiExecuted && fromCheck{
 				l.log.Info("Find a MultiSign Executed extrinsic", "Block", currentBlock)
 				// Find An existing multi-signed transaction in the record, and marks for executed status
 				l.markVote(msTx, e)
 				l.markExecution(msTx)
 			}
 
-			if e.Type == base.UtilityBatch {
+			if e.Type == base.UtilityBatch && toCheck {
 				l.log.Info("Find a MultiSign Batch Extrinsic", "Block", currentBlock)
 				if e.Status == "fail" {
 					l.log.Info("But Batch Extrinsic Failed", "Block", currentBlock)
@@ -284,8 +286,22 @@ func (l *listener) processBlock(hash types.Hash) error {
 				}
 				sendAmount := big.NewInt(0)
 				actualAmount := big.NewInt(0)
+				if l.chainId == config.Kusama {
+					/// KSM / DOT is 12 digits.
+					fixedFee := big.NewInt(FixedFee)
+					additionalFee := big.NewInt(0).Div(amount, big.NewInt(FeeRate))
+					fee := big.NewInt(0).Add(fixedFee, additionalFee)
 
-				if l.chainId == Kusama || l.chainId == Polkadot{
+					actualAmount.Sub(amount, fee)
+					if actualAmount.Cmp(big.NewInt(0)) == -1 {
+						l.log.Error("Charge a neg amount", "Amount", actualAmount)
+						continue
+					}
+
+					sendAmount.Mul(actualAmount, big.NewInt(oneToken))
+
+					fmt.Printf("DOT to PDOT, Amount is %v, Fee is %v, Actual_PDOT_Amount = %v\n", amount, fee, actualAmount)
+				} else if l.chainId == config.Polkadot {
 					/// KSM / DOT is 12 digits.
 					fixedFee := big.NewInt(FixedFee)
 					additionalFee := big.NewInt(0).Div(amount, big.NewInt(FeeRate))
@@ -300,13 +316,15 @@ func (l *listener) processBlock(hash types.Hash) error {
 					sendAmount.Mul(actualAmount, big.NewInt(oneToken))
 
 					fmt.Printf("KSM to AKSM, Amount is %v, Fee is %v, Actual_AKSM_Amount = %v\n", amount, fee, actualAmount)
-				} else if l.chainId == ChainX && e.AssetId == XBTC {
+				} else if l.chainId == config.ChainX && e.AssetId == XBTC {
 					/// XBTC is 8 digits.
 					sendAmount.Mul(amount, big.NewInt(oneXToken))
 					fmt.Printf("XBTC to AXBTC, Amount is %v, Fee is %v, Actual_AXBTC_Amount = %v\n", amount, 0, amount)
 				} else {
 					/// Other Chain
+					continue
 				}
+
 				if e.Recipient == "" {
 					fmt.Printf("Not System.Remark\n")
 					continue
@@ -322,28 +340,24 @@ func (l *listener) processBlock(hash types.Hash) error {
 					l.resourceId,
 					recipient,
 				)
-				/// Validate whether a cross-chain transaction
-				receivePubAddress, _ := ss58.DecodeToPub(e.ToAddress)
-				receiveAddress := types.NewAddressFromAccountID(receivePubAddress)
-				if receiveAddress.AsAccountID == l.multiSignAddr {
-					switch l.chainId {
-					case Kusama:
-						l.log.Info("Ready to send AKSM...", "Amount", amount, "Recipient", recipient, "FromChain", l.name, "FromId", l.chainId, "To", l.destId)
-					case Polkadot:
-						l.log.Info("Ready to send PDOT...", "Amount", amount, "Recipient", recipient, "FromChain", l.name, "FromId", l.chainId, "To", l.destId)
-					case ChainX:
-						if e.AssetId == XBTC {
-							l.log.Info("Ready to send AXBTC...", "Amount", amount, "Recipient", recipient, "FromChain", l.name, "FromId", l.chainId, "To", l.destId)
-						}
-					default:
-						l.log.Info("Ready to send PDOT...", "Amount", amount, "Recipient", recipient, "FromChain", l.name, "FromId", l.chainId, "To", l.destId)
-					}
 
-					l.submitMessage(m, err)
-					if err != nil {
-						l.log.Error("Submit message to Writer", "Error", err)
-						return err
+				switch l.chainId {
+				case config.Kusama:
+					l.log.Info("Ready to send AKSM...", "Amount", amount, "Recipient", recipient, "FromChain", l.name, "FromId", l.chainId, "To", l.destId)
+				case config.Polkadot:
+					l.log.Info("Ready to send PDOT...", "Amount", amount, "Recipient", recipient, "FromChain", l.name, "FromId", l.chainId, "To", l.destId)
+				case config.ChainX:
+					if e.AssetId == XBTC {
+						l.log.Info("Ready to send AXBTC...", "Amount", amount, "Recipient", recipient, "FromChain", l.name, "FromId", l.chainId, "To", l.destId)
 					}
+				default:
+					l.log.Info("Ready to send PDOT...", "Amount", amount, "Recipient", recipient, "FromChain", l.name, "FromId", l.chainId, "To", l.destId)
+				}
+
+				l.submitMessage(m, err)
+				if err != nil {
+					l.log.Error("Submit message to Writer", "Error", err)
+					return err
 				}
 			}
 		}
@@ -401,4 +415,25 @@ func (l *listener) markExecution(msTx MultiSigAsMulti) {
 			l.msTxAsMulti[k] = exeMsTx
 		}
 	}
+}
+func (l *listener) checkToAddress(e *models.ExtrinsicResponse) bool {
+	/// Validate whether a cross-chain transaction
+	toPubAddress, _ := ss58.DecodeToPub(e.ToAddress)
+	toAddress := types.NewAddressFromAccountID(toPubAddress)
+	return toAddress.AsAccountID == l.multiSignAddr
+}
+
+func (l *listener) checkFromAddress(e *models.ExtrinsicResponse) bool {
+	fromPubAddress, _ := ss58.DecodeToPub(e.FromAddress)
+	fromAddress := types.NewAddressFromAccountID(fromPubAddress)
+	currentRelayer := types.NewAddressFromAccountID(l.relayer.kr.PublicKey)
+	if currentRelayer.AsAccountID == fromAddress.AsAccountID {
+		return true
+	}
+	for _, r := range l.relayer.otherSignatories {
+		if types.AccountID(r) == fromAddress.AsAccountID {
+			return true
+		}
+	}
+	return false
 }

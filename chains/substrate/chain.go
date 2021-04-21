@@ -26,6 +26,7 @@ package substrate
 import (
 	"github.com/ChainSafe/log15"
 	"github.com/JFJun/go-substrate-crypto/ss58"
+	"github.com/Platdot-network/Platdot/config"
 	"github.com/centrifuge/go-substrate-rpc-client/v2/signature"
 	"github.com/rjman-self/substrate-go/client"
 	"github.com/rjman-self/platdot-utils/blockstore"
@@ -119,11 +120,11 @@ func InitializeChain(cfg *core.ChainConfig, logger log15.Logger, sysErr chan<- e
 	}
 
 	switch cfg.Id {
-	case Kusama:
+	case config.Kusama:
 		cli.SetPrefix(ss58.PolkadotPrefix)
-	case ChainX:
+	case config.ChainX:
 		cli.SetPrefix(ss58.ChainXPrefix)
-	case Polkadot:
+	case config.Polkadot:
 		cli.SetPrefix(ss58.PolkadotPrefix)
 	default:
 		cli.SetPrefix(ss58.PolkadotPrefix)

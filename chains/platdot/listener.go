@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/Platdot-network/Platdot/config"
 	"math/big"
 	"time"
 
@@ -126,8 +127,16 @@ func (l *listener) pollBlocks() error {
 				time.Sleep(BlockRetryInterval)
 				continue
 			}
-			if currentBlock.Uint64() % 10 == 0 {
-				fmt.Printf("Alaya Block is #%v\n", currentBlock)
+
+			if currentBlock.Uint64() % 5 == 0 {
+				switch l.cfg.id {
+				case config.Alaya:
+					fmt.Printf("Alaya Block is #%v\n", currentBlock)
+				case config.PlatON:
+					fmt.Printf("PlatON Block is #%v\n", currentBlock)
+				default:
+					fmt.Printf("Eth Block is #%v\n", currentBlock)
+				}
 			}
 
 			if endBlock.Uint64() != 0 && currentBlock.Uint64() > endBlock.Uint64(){

@@ -34,7 +34,7 @@ var (
 	EndBlockOpt         = "endBlock"
 	BlockConfirmationsOpt = "blockConfirmations"
 	PrefixOpt             = "prefix"
-	NetWorkIdOpt          = "networkId"
+	NetworkIdOpt          = "networkId"
 
 )
 
@@ -83,7 +83,7 @@ func parseChainConfig(chainCfg *core.ChainConfig) (*Config, error) {
 		gasMultiplier:          big.NewFloat(DefaultGasMultiplier),
 		http:                   http,
 		prefix:                 chainCfg.Opts[PrefixOpt],
-		networkId:              chainCfg.Opts[NetWorkIdOpt],
+		networkId:              chainCfg.Opts[NetworkIdOpt],
 		startBlock:             big.NewInt(0),
 		endBlock:               big.NewInt(0),
 		blockConfirmations:     big.NewInt(0),
@@ -188,9 +188,9 @@ func parseChainConfig(chainCfg *core.ChainConfig) (*Config, error) {
 		delete(chainCfg.Opts, PrefixOpt)
 	}
 
-	if networkId, ok := chainCfg.Opts[NetWorkIdOpt]; ok && networkId != "" {
+	if networkId, ok := chainCfg.Opts[NetworkIdOpt]; ok && networkId != "" {
 		config.networkId = networkId
-		delete(chainCfg.Opts, NetWorkIdOpt)
+		delete(chainCfg.Opts, NetworkIdOpt)
 	}
 
 	if len(chainCfg.Opts) != 0 {

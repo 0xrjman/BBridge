@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	ethcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/rjman-self/platdot-utils/msg"
 	"os"
 	"path/filepath"
 
@@ -19,6 +20,15 @@ import (
 const DefaultConfigPath = "./config.json"
 const DefaultKeystorePath = "./keystore"
 const DefaultBlockTimeout = int64(180) // 3 minutes
+
+/// ChainId Type
+const (
+	Alaya			msg.ChainId = 2
+	Kusama			msg.ChainId = 1
+	ChainX			msg.ChainId = 3
+	PlatON			msg.ChainId = 4
+	Polkadot		msg.ChainId = 5
+)
 
 type Config struct {
 	Chains       []RawChainConfig `json:"chains"`

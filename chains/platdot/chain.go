@@ -22,12 +22,13 @@ package platdot
 
 import (
 	"github.com/ChainSafe/log15"
+	bridge "github.com/Platdot-network/Platdot/bindings/Bridge"
+	erc20Handler "github.com/Platdot-network/Platdot/bindings/ERC20Handler"
+	"github.com/Platdot-network/Platdot/config"
+	connection "github.com/Platdot-network/Platdot/connections/platdot"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
-	bridge "github.com/Platdot-network/Platdot/bindings/Bridge"
-	erc20Handler "github.com/Platdot-network/Platdot/bindings/ERC20Handler"
-	connection "github.com/Platdot-network/Platdot/connections/platdot"
 	"github.com/rjman-self/platdot-utils/blockstore"
 	"github.com/rjman-self/platdot-utils/core"
 	"github.com/rjman-self/platdot-utils/crypto/secp256k1"
@@ -35,7 +36,7 @@ import (
 	metrics "github.com/rjman-self/platdot-utils/metrics/types"
 	"github.com/rjman-self/platdot-utils/msg"
 	"math/big"
-	"os"
+	"strconv"
 )
 
 var _ core.Chain = &Chain{}
@@ -82,11 +83,8 @@ func InitializeChain(chainCfg *core.ChainConfig, logger log15.Logger, sysErr cha
 		return nil, err
 	}
 
-	// set Alaya chainId
-	err = os.Setenv("networkId", cfg.networkId)
-	if err != nil {
-		return nil, err
-	}
+	// set chainId
+	networkId, _ := strconv.ParseUint(cfg.networkId, 0, 64)
 
 	// load key
 	ethBytes, _ := common.PlatonToEth(cfg.from)
@@ -105,7 +103,7 @@ func InitializeChain(chainCfg *core.ChainConfig, logger log15.Logger, sysErr cha
 	}
 
 	stop := make(chan int)
-	conn := connection.NewConnection(cfg.endpoint, cfg.http, kp, logger, cfg.gasLimit, cfg.maxGasPrice, cfg.gasMultiplier)
+	conn := connection.NewConnection(networkId, cfg.endpoint, cfg.http, kp, logger, cfg.gasLimit, cfg.maxGasPrice, cfg.gasMultiplier)
 	err = conn.Connect()
 	if err != nil {
 		return nil, err
@@ -133,9 +131,23 @@ func InitializeChain(chainCfg *core.ChainConfig, logger log15.Logger, sysErr cha
 			return nil, err
 		}
 		cfg.startBlock = curr
-		log15.Info("Alaya Start block is newest", "StartBlock", cfg.startBlock)
+		switch cfg.id {
+		case config.Alaya:
+			log15.Info("Alaya Start block is newest", "StartBlock", cfg.startBlock)
+		case config.PlatON:
+			log15.Info("PlatON Start block is newest", "StartBlock", cfg.startBlock)
+		default:
+			log15.Info("Start block is newest", "StartBlock", cfg.startBlock)
+		}
 	} else {
-		log15.Info("Alaya Start block is specified", "StartBlock", cfg.startBlock)
+		switch cfg.id {
+		case config.Alaya:
+			log15.Info("Alaya Start block is specified", "StartBlock", cfg.startBlock)
+		case config.PlatON:
+			log15.Info("PlatON Start block is specified", "StartBlock", cfg.startBlock)
+		default:
+			log15.Info("Start block is specified", "StartBlock", cfg.startBlock)
+		}
 	}
 
 	listener := NewListener(conn, cfg, logger, bs, stop, sysErr, m)
