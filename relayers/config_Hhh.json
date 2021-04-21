@@ -74,7 +74,7 @@
       "name": "polkadot",
       "type": "substrate",
       "id": "5",
-      "endpoint": "ws://127.0.0.1:9944",
+      "endpoint": "wss://polkadot.api.onfinality.io/public-ws",
       "from": "5CHwt8bFyDLC3MyzPQugmmxZTGjShBW2kFMWiC2kSL5TuJxd",
       "opts": {
         "MultiSignAddress": "0x83b0e4664507e7072dd2b30e9c5f68a708979e741a965048fb1ccbc61bd331f5",
