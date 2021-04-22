@@ -211,7 +211,7 @@ func (w *writer) redeemTx(m msg.Message) (bool, MultiSignTx) {
 	amount := big.NewInt(0).SetBytes(m.Payload[0].([]byte))
 	destAddress := string(m.Payload[1].([]byte))
 	multiAddressRecipient, _ := types.NewMultiAddressFromHexAccountID(string(m.Payload[1].([]byte)))
-	//addressRecipient, _ := types.NewAddressFromHexAccountID(string(m.Payload[1].([]byte)))
+	addressRecipient, _ := types.NewAddressFromHexAccountID(string(m.Payload[1].([]byte)))
 	actualAmount := big.NewInt(0)
 
 	// Get parameters of Balances.Transfer Call
@@ -249,7 +249,7 @@ func (w *writer) redeemTx(m msg.Message) (bool, MultiSignTx) {
 			w.log.Error("New Balances.Transfer_Keep_Alive Call err", "err", err)
 		}
 	} else if m.Destination == config.ChainX {
-		/// Convert AXBTC amount to XBTC amount
+		/// Convert ABTC amount to XBTC amount
 		actualAmount.Div(amount, big.NewInt(oneXToken))
 
 		if actualAmount.Cmp(big.NewInt(0)) == -1 {
@@ -257,7 +257,7 @@ func (w *writer) redeemTx(m msg.Message) (bool, MultiSignTx) {
 			return true, AmountError
 		}
 
-		fmt.Printf("AXBTC to XBTC, Amount is %v, Fee is %v, Actual_XBTC_Amount = %v\n", actualAmount, 0, actualAmount)
+		fmt.Printf("ABTC to XBTC, Amount is %v, Fee is %v, Actual_XBTC_Amount = %v\n", actualAmount, 0, actualAmount)
 
 		sendAmount := types.NewUCompact(actualAmount)
 
@@ -268,9 +268,10 @@ func (w *writer) redeemTx(m msg.Message) (bool, MultiSignTx) {
 		c, err = types.NewCall(
 			w.meta,
 			xMethod,
-			multiAddressRecipient,
+			/// ChainX XBTC2.0 Address
+			//multiAddressRecipient,
 			/// ChainX XBTC1.0 Address
-			//addressRecipient,
+			addressRecipient,
 			assetId,
 			sendAmount,
 		)
@@ -405,9 +406,9 @@ func (w *writer) submitTx(c types.Call) {
 			err = ext.MultiSign(w.relayer.kr, o)
 		case config.ChainX:
 			/// ChainX XBTC2.0 MultiAddress
-			err = ext.MultiSign(w.relayer.kr, o)
+			//err = ext.MultiSign(w.relayer.kr, o)
 			/// ChainX XBTC1.0 Address
-			//err = ext.Sign(w.relayer.kr, o)
+			err = ext.Sign(w.relayer.kr, o)
 		default:
 			err = ext.MultiSign(w.relayer.kr, o)
 		}

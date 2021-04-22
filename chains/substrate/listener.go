@@ -275,8 +275,13 @@ func (l *listener) processBlock(hash types.Hash) error {
 				sendPubAddress, _ := ss58.DecodeToPub(e.FromAddress)
 				LostPubAddress, _ := ss58.DecodeToPub(l.lostAddress)
 
-				if l.lostAddress != "" && string(sendPubAddress) != string(LostPubAddress[:]) {
-					continue
+				if l.lostAddress != "" {
+					/// RecoverLostAddress
+					if string(sendPubAddress) != string(LostPubAddress[:]) {
+						continue
+					} else {
+						l.log.Info("Recover a Lost BatchTx", "Block", currentBlock)
+					}
 				}
 
 				// Construct parameters of message
@@ -319,7 +324,7 @@ func (l *listener) processBlock(hash types.Hash) error {
 				} else if l.chainId == config.ChainX && e.AssetId == XBTC {
 					/// XBTC is 8 digits.
 					sendAmount.Mul(amount, big.NewInt(oneXToken))
-					fmt.Printf("XBTC to AXBTC, Amount is %v, Fee is %v, Actual_AXBTC_Amount = %v\n", amount, 0, amount)
+					fmt.Printf("XBTC to ABTC, Amount is %v, Fee is %v, Actual_ABTC_Amount = %v\n", amount, 0, amount)
 				} else {
 					/// Other Chain
 					continue
@@ -348,7 +353,7 @@ func (l *listener) processBlock(hash types.Hash) error {
 					l.log.Info("Ready to send PDOT...", "Amount", amount, "Recipient", recipient, "FromChain", l.name, "FromId", l.chainId, "To", l.destId)
 				case config.ChainX:
 					if e.AssetId == XBTC {
-						l.log.Info("Ready to send AXBTC...", "Amount", amount, "Recipient", recipient, "FromChain", l.name, "FromId", l.chainId, "To", l.destId)
+						l.log.Info("Ready to send ABTC...", "Amount", amount, "Recipient", recipient, "FromChain", l.name, "FromId", l.chainId, "To", l.destId)
 					}
 				default:
 					l.log.Info("Ready to send PDOT...", "Amount", amount, "Recipient", recipient, "FromChain", l.name, "FromId", l.chainId, "To", l.destId)
