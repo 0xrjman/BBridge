@@ -28,7 +28,6 @@ type dataHandler struct {
 // wrapHandler takes in a Cmd function (all declared below) and wraps
 // it in the correct signature for the Cli Commands
 func wrapHandler(hdl func(*cli.Context, *dataHandler) error) cli.ActionFunc {
-
 	return func(ctx *cli.Context) error {
 		err := startLogger(ctx)
 		if err != nil {

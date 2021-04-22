@@ -62,7 +62,16 @@ func NewConnection(chainId uint64, endpoint string, http bool, kp *secp256k1.Key
 
 // Connect starts the ethereum WS connection
 func (c *Connection) Connect() error {
-	c.log.Info("Connecting to Alaya test chain...", "url", c.endpoint)
+	switch c.chainId {
+	case ChainIdAlayaMainNet:
+		c.log.Info("Connecting to Alaya chain...", "url", c.endpoint)
+	case ChainIdAlayaTestNet:
+		c.log.Info("Connecting to Alaya-test chain...", "url", c.endpoint)
+	case ChainIdPlatONMainNet:
+		c.log.Info("Connecting to PlatON chain...", "url", c.endpoint)
+	default:
+		c.log.Info("Connecting to Eth chain...", "url", c.endpoint)
+	}
 	var rpcClient *rpc.Client
 	var err error
 

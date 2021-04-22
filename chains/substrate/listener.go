@@ -49,7 +49,7 @@ type listener struct {
 }
 
 // Frequency of polling for a new block
-const InitCapacity = 500
+const InitCapacity = 100
 
 var BlockRetryInterval = time.Second * 5
 var BlockRetryLimit = 20
@@ -103,6 +103,7 @@ func (l *listener) start() error {
 			l.log.Error("Polling blocks failed", "err", err)
 		}
 	}()
+
 	return nil
 }
 

@@ -615,6 +615,8 @@ github.com/rjman-self/platdot-utils v1.0.9 h1:ltmkkE/u+kcgxXtxeTj4ycw8VAG97gDjiZ
 github.com/rjman-self/platdot-utils v1.0.9/go.mod h1:7Xi94rlxQko0FJ0PAxywzxqVgQo86RJ9UO4X4rqmuUQ=
 github.com/rjman-self/substrate-go v1.3.0 h1:o+dLYJpo/3tinaIiHAXM372TIwXmoqD6nf0x+8vNiFk=
 github.com/rjman-self/substrate-go v1.3.0/go.mod h1:E5Eo/JEtx7VYE8Rf9UZtEuLaNtSbloWOAQJf9xicWD4=
+github.com/rjman-self/substrate-go v1.3.1 h1:nQBteLCNGSkn4mJhk0D0D4QHWHmL04AFwI2tHUYvBok=
+github.com/rjman-self/substrate-go v1.3.1/go.mod h1:E5Eo/JEtx7VYE8Rf9UZtEuLaNtSbloWOAQJf9xicWD4=
 github.com/rjmand/go-substrate-rpc-client/v2 v2.1.1-0.20210228120507-d15559aaddb1/go.mod h1:opE+pB/SAyI9m2Y95pkgvtio/cf9LXq2lpW4aOQck9A=
 github.com/rjmand/go-substrate-rpc-client/v2 v2.5.0 h1:CR3xgKnPK8pMQ0f8F1pkD3h+8efGpqIqPkqhnpMSTCY=
 github.com/rjmand/go-substrate-rpc-client/v2 v2.5.0/go.mod h1:WFbPfrrU/pDYLUfNBEPFlkeYVQ4+/8au8UKt6WshiyI=
