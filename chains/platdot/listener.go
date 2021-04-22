@@ -27,7 +27,7 @@ import (
 )
 
 var BlockRetryInterval = time.Second * 5
-var BlockRetryLimit = 5
+var BlockRetryLimit = 20
 var ErrFatalPolling = errors.New("listener block polling failed")
 
 type listener struct {
