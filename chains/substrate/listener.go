@@ -107,8 +107,6 @@ func (l *listener) start() error {
 	return nil
 }
 
-var ErrBlockNotReady = errors.New("required result to be 32 bytes, but got 0")
-
 // pollBlocks will poll for the latest block and proceed to parse the associated events as it sees new blocks.
 // Polling begins at the block defined in `l.startBlock`. Failed attempts to fetch the latest block or parse
 // a block will be retried up to BlockRetryLimit times before returning with an error.
@@ -157,18 +155,7 @@ func (l *listener) pollBlocks() error {
 				continue
 			}
 
-			/// Get hash for latest block, sleep and retry if not ready
-			hash, err := l.client.Api.RPC.Chain.GetBlockHash(currentBlock)
-			if err != nil && err.Error() == ErrBlockNotReady.Error() {
-				time.Sleep(BlockRetryInterval)
-				continue
-			} else if err != nil {
-				l.log.Error("Failed to query latest block", "block", currentBlock, "err", err)
-				retry--
-				time.Sleep(BlockRetryInterval)
-				continue
-			}
-			if currentBlock % 5 == 0 {
+			if currentBlock%5 == 0 {
 				switch l.chainId {
 				case config.Kusama:
 					fmt.Printf("Kusama Block is #%v\n", currentBlock)
@@ -186,7 +173,7 @@ func (l *listener) pollBlocks() error {
 				return nil
 			}
 
-			err = l.processBlock(hash)
+			err = l.processBlock(int64(currentBlock))
 			if err != nil {
 				l.log.Error("Failed to process current block", "block", currentBlock, "err", err)
 				retry--
@@ -214,21 +201,13 @@ func (l *listener) pollBlocks() error {
 	}
 }
 
-func (l *listener) processBlock(hash types.Hash) error {
+func (l *listener) processBlock(currentBlock int64) error {
 	retryTimes := BlockRetryLimit
 	for {
 		if retryTimes == 0 {
-			l.log.Info("processBlock err, check it", "blockHash", hash.Hex())
+			l.log.Info("processBlock err, check it", "CurrentBlock", currentBlock)
 			return nil
 		}
-		block, err := l.client.Api.RPC.Chain.GetBlock(hash)
-		if err != nil {
-			fmt.Printf("GetBlockHash err\n")
-			time.Sleep(time.Second)
-			retryTimes--
-			continue
-		}
-		currentBlock := int64(block.Block.Header.Number)
 		resp, err := l.client.GetBlockByNumber(currentBlock)
 		if err != nil {
 			fmt.Printf("GetBlockByNumber err\n")
@@ -259,7 +238,7 @@ func (l *listener) processBlock(hash types.Hash) error {
 				l.markVote(msTx, e)
 			}
 
-			if e.Type == base.AsMultiExecuted && fromCheck{
+			if e.Type == base.AsMultiExecuted && fromCheck {
 				l.log.Info("Find a MultiSign Executed extrinsic", "Block", currentBlock)
 				// Find An existing multi-signed transaction in the record, and marks for executed status
 				l.markVote(msTx, e)

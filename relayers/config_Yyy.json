@@ -38,7 +38,7 @@
       "name": "chainx",
       "type": "substrate",
       "id": "3",
-      "endpoint": "wss://testnet-2.chainx.org/ws",
+      "endpoint": "wss://chainx.supercube.pro/ws",
       "from": "16DZrdFXiQrdunjDPq4ppM4ZudqHYi16nivQPAHPSovBM7vd",
       "opts": {
         "MultiSignAddress": "0x83b0e4664507e7072dd2b30e9c5f68a708979e741a965048fb1ccbc61bd331f5",
