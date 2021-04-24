@@ -87,17 +87,6 @@ func (c *Connection) Connect() error {
 
 	c.conn = ethclient.NewClient(rpcClient)
 	/// Set rpc chainId
-	c.conn.SetChainID(c.chainId)
-	switch c.chainId {
-	case ChainIdAlayaMainNet:
-		c.conn.SetChainName("alaya")
-	case ChainIdAlayaTestNet:
-		c.conn.SetChainName("alaya-test")
-	case ChainIdPlatONMainNet:
-		c.conn.SetChainName("platon")
-	default:
-		c.conn.SetChainName("alaya")
-	}
 
 	// Construct tx opts, call opts, and nonce mechanism
 	opts, _, err := c.newTransactOpts(big.NewInt(0), c.gasLimit, c.maxGasPrice)
@@ -120,7 +109,12 @@ func (c *Connection) newTransactOpts(value, gasLimit, gasPrice *big.Int) (*bind.
 		return nil, 0, err
 	}
 
-	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, big.NewInt(int64(c.conn.GetChainID())))
+	id, err := c.conn.ChainID(context.Background())
+	if err != nil {
+		return nil, 0, err
+	}
+
+	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, id)
 	if err != nil {
 		return nil, 0, err
 	}

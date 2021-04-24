@@ -21,6 +21,7 @@ The writer recieves the message and creates a proposals on-chain. Once a proposa
 package platdot
 
 import (
+	"fmt"
 	"github.com/ChainSafe/log15"
 	bridge "github.com/Platdot-network/Platdot/bindings/Bridge"
 	erc20Handler "github.com/Platdot-network/Platdot/bindings/ERC20Handler"
@@ -87,9 +88,7 @@ func InitializeChain(chainCfg *core.ChainConfig, logger log15.Logger, sysErr cha
 	networkId, _ := strconv.ParseUint(cfg.networkId, 0, 64)
 
 	// load key
-	ethBytes, _ := common.PlatonToEth(cfg.from)
-	ethAddress := common.BytesToAddress(ethBytes)
-	kpI, err := keystore.KeypairFromAddress(ethAddress.String(), keystore.EthChain, cfg.keystorePath, chainCfg.Insecure)
+	kpI, err := keystore.KeypairFromAddress(cfg.from, keystore.EthChain, cfg.keystorePath, chainCfg.Insecure)
 	if err != nil {
 		return nil, err
 	}
@@ -118,6 +117,16 @@ func InitializeChain(chainCfg *core.ChainConfig, logger log15.Logger, sysErr cha
 	if err != nil {
 		return nil, err
 	}
+
+	chainId, err := bridgeContract.ChainID(conn.CallOpts())
+	if err != nil {
+		return nil, err
+	}
+
+	if chainId != uint8(chainCfg.Id) {
+		return nil, fmt.Errorf("chainId (%d) and configuration chainId (%d) do not match", chainId, chainCfg.Id)
+	}
+
 
 	erc20HandlerContract, err := erc20Handler.NewERC20Handler(cfg.erc20HandlerContract, conn.Client())
 	if err != nil {

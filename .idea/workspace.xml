@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="d790b677-8ce9-433d-8d3f-549ece0535f4" name="默认变更列表" comment="">
+    <list default="true" id="d790b677-8ce9-433d-8d3f-549ece0535f4" name="默认变更列表" comment="fixed neg fee">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/chains/platdot/chain.go" beforeDir="false" afterPath="$PROJECT_DIR$/chains/platdot/chain.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/chains/platdot/config.go" beforeDir="false" afterPath="$PROJECT_DIR$/chains/platdot/config.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/chains/platdot/listener.go" beforeDir="false" afterPath="$PROJECT_DIR$/chains/platdot/listener.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/chains/substrate/chain.go" beforeDir="false" afterPath="$PROJECT_DIR$/chains/substrate/chain.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chains/platdot/writer_methods.go" beforeDir="false" afterPath="$PROJECT_DIR$/chains/platdot/writer_methods.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/chains/substrate/listener.go" beforeDir="false" afterPath="$PROJECT_DIR$/chains/substrate/listener.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/chains/substrate/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/chains/substrate/types.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/chains/substrate/writer.go" beforeDir="false" afterPath="$PROJECT_DIR$/chains/substrate/writer.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/platdot/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/platdot/main.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/config.go" beforeDir="false" afterPath="$PROJECT_DIR$/config/config.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/connections/platdot/connection.go" beforeDir="false" afterPath="$PROJECT_DIR$/connections/platdot/connection.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/relayers/config_Hhh.json" beforeDir="false" afterPath="$PROJECT_DIR$/relayers/config_Hhh.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/relayers/config_Qqq.json" beforeDir="false" afterPath="$PROJECT_DIR$/relayers/config_Qqq.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/relayers/config_Sss.json" beforeDir="false" afterPath="$PROJECT_DIR$/relayers/config_Sss.json" afterDir="false" />
@@ -51,8 +52,8 @@
               <option name="branches">
                 <list>
                   <RecentBranch>
-                    <option name="branchName" value="devTest" />
-                    <option name="lastUsedInstant" value="1618914928" />
+                    <option name="branchName" value="bsc" />
+                    <option name="lastUsedInstant" value="1619232470" />
                   </RecentBranch>
                   <RecentBranch>
                     <option name="branchName" value="devMain" />
@@ -95,8 +96,9 @@
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
     <property name="go.tried.to.enable.integration.vgo.integrator" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../substrate-go" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="restartRequiresConfirmation" value="false" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -146,15 +148,50 @@
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/chains/substrate/listener.go</url>
-          <line>281</line>
-          <option name="timeStamp" value="11" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+        <line-breakpoint type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/../go-ethereum/ethclient/ethclient.go</url>
           <line>67</line>
           <option name="timeStamp" value="14" />
+        </line-breakpoint>
+        <line-breakpoint type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/chains/platdot/chain.go</url>
+          <line>81</line>
+          <option name="timeStamp" value="15" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/chains/substrate/listener.go</url>
+          <line>319</line>
+          <option name="timeStamp" value="17" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/chains/platdot/writer.go</url>
+          <line>55</line>
+          <option name="timeStamp" value="18" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/chains/platdot/writer_methods.go</url>
+          <line>117</line>
+          <option name="timeStamp" value="19" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/chains/platdot/writer_methods.go</url>
+          <line>94</line>
+          <option name="timeStamp" value="22" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/chains/substrate/writer.go</url>
+          <line>202</line>
+          <option name="timeStamp" value="24" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/chains/substrate/writer.go</url>
+          <line>213</line>
+          <option name="timeStamp" value="32" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/chains/substrate/writer.go</url>
+          <line>242</line>
+          <option name="timeStamp" value="33" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

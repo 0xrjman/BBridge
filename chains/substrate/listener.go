@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/JFJun/go-substrate-crypto/ss58"
 	"github.com/Platdot-network/Platdot/config"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/rjman-self/substrate-go/expand/base"
 	"github.com/rjman-self/substrate-go/models"
 	"strconv"
@@ -314,7 +315,14 @@ func (l *listener) processBlock(currentBlock int64) error {
 					fmt.Printf("Not System.Remark\n")
 					continue
 				}
-				recipient := []byte(e.Recipient)
+				var recipient types.AccountID
+
+				if e.Recipient[:3] == "hex" {
+					recipient = types.NewAccountID(common.FromHex(e.Recipient[3:]))
+				} else {
+					recipient = types.NewAccountID(common.FromHex(e.Recipient))
+				}
+
 				depositNonce, _ := strconv.ParseInt(strconv.FormatInt(currentBlock, 10)+strconv.FormatInt(int64(e.ExtrinsicIndex), 10), 10, 64)
 
 				m := msg.NewFungibleTransfer(
@@ -323,7 +331,7 @@ func (l *listener) processBlock(currentBlock int64) error {
 					msg.Nonce(depositNonce),
 					sendAmount,
 					l.resourceId,
-					recipient,
+					recipient[:],
 				)
 
 				switch l.chainId {

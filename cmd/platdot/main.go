@@ -9,6 +9,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Platdot-network/Platdot/chains/platdot"
+	gsrpc "github.com/centrifuge/go-substrate-rpc-client/v2"
+	"github.com/centrifuge/go-substrate-rpc-client/v2/signature"
+	"github.com/centrifuge/go-substrate-rpc-client/v2/types"
 	"net/http"
 	"os"
 
@@ -231,4 +234,103 @@ func run(ctx *cli.Context) error {
 	c.Start()
 
 	return nil
+}
+
+func sendSimpleTx() bool {
+	nnnPk := types.MustHexDecodeString("0x6c707b1690a6b0e01b5dea252fe1887930a5afc0ec203f96705331749c37ae4a")
+
+	api, err := gsrpc.NewSubstrateAPI("wss://chainx.supercube.pro/ws")
+	if err != nil {
+		panic(err)
+	}
+
+	meta, err := api.RPC.State.GetMetadataLatest()
+	if err != nil {
+		panic(err)
+	}
+
+
+	//serialize signature data
+	//types.SetSerDeOptions(types.SerDeOptions{NoPalletIndices: true})
+
+	//BEGIN: Create a call of transfer
+	method := "Balances.transfer"
+	recipient, _ := types.NewAddressFromHexAccountID("0x923eeef27b93315c97e63e0c1284b7433ffbc413a58da0626a63955a48586075")
+	amount := types.NewUCompactFromUInt(100000000)
+
+	//assetId := types.NewUCompactFromUInt(1)
+
+	c, err := types.NewCall(
+		meta,
+		method,
+		recipient,
+		amount,
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	ext := types.NewExtrinsic(c)
+
+	genesisHash, err := api.RPC.Chain.GetBlockHash(0)
+	if err != nil {
+		panic(err)
+	}
+	rv, err := api.RPC.State.GetRuntimeVersionLatest()
+	if err != nil {
+		panic(err)
+	}
+
+	key, err := types.CreateStorageKey(meta, "System", "Account", nnnPk, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	var accountInfo types.AccountInfo
+	ok, err := api.RPC.State.GetStorageLatest(key, &accountInfo)
+	if err != nil || !ok {
+		panic(err)
+	}
+
+	nonce := uint32(accountInfo.Nonce)
+
+	o := types.SignatureOptions{
+		BlockHash:          genesisHash,
+		Era:                types.ExtrinsicEra{IsMortalEra: false},
+		GenesisHash:        genesisHash,
+		Nonce:              types.NewUCompactFromUInt(uint64(nonce)),
+		SpecVersion:        rv.SpecVersion,
+		Tip:                types.NewUCompactFromUInt(0),
+		TransactionVersion: rv.TransactionVersion,
+	}
+
+	var seed = "0x88f0a28290e044930f03e51e3baa9f24293af62a30e537a5a04e1419f605dcc8"
+	var addr = "5EWtScne4zWsGaP4gVo8DmLpChVx3MzoQTpKJCEdBTYDA1Dy"
+	//var phrase = "outer spike flash urge bus text aim public drink pumpkin pretty loan"
+
+	nnn := signature.KeyringPair{
+		URI:       seed,
+		Address:   addr,
+		PublicKey: nnnPk,
+	}
+
+	err = ext.Sign(nnn, o)
+	if err != nil {
+		panic(err)
+	}
+
+	sub, err := api.RPC.Author.SubmitAndWatchExtrinsic(ext)
+	if err != nil {
+		panic(err)
+	}
+	defer sub.Unsubscribe()
+
+	for {
+		status := <-sub.Chan()
+		//fmt.Printf("Transaction status: %#v\n", status)
+		if status.IsFinalized {
+			//w.conn.api.
+			fmt.Printf("Completed at block hash: %#x\n", status.AsFinalized)
+		}
+	}
 }

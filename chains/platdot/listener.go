@@ -131,7 +131,7 @@ func (l *listener) pollBlocks() error {
 			if currentBlock.Uint64() % 5 == 0 {
 				switch l.cfg.id {
 				case config.Alaya:
-					fmt.Printf("Alaya Block is #%v\n", currentBlock)
+					fmt.Printf("BSC Block is #%v\n", currentBlock)
 				case config.PlatON:
 					fmt.Printf("PlatON Block is #%v\n", currentBlock)
 				default:

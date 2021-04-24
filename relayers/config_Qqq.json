@@ -1,24 +1,23 @@
 {
   "chains": [
     {
-      "name": "alaya",
+      "name": "bsc",
       "type": "ethereum",
       "id": "2",
-      "endpoint": "http://47.110.34.31:6789",
-      "from": "atp1hfhgzgluf9qneuguyw36jrnnsexn388d2lu6xr",
+      "endpoint": "https://data-seed-prebsc-1-s3.binance.org:8545",
+      "from": "0xBA6e8123fc49413CF11C23a3A90e73864d389ced",
       "opts": {
-        "bridge": "atp1emxqzwmz0nv5pxk3h9e2dp3p6djfkqwn4v05zk",
-        "erc20Handler": "atp15nqwyjpffntmgg05aq6u7frdvy60qnm82007q5",
+        "bridge": "0xeEc45984F86f35AF9F6489fd30a7f0aa655c08dB",
+        "erc20Handler": "0x04c20C38e015e52685ba7DC34E839960a23C03CC",
         "http": "true",
-        "prefix": "atp",
-        "networkId": "201030"
+        "networkId": "97"
       }
     },
     {
-      "name": "kusama",
+      "name": "polkadot",
       "type": "substrate",
-      "id": "1",
-      "endpoint": "wss://supercube.pro/ws",
+      "id": "5",
+      "endpoint": "wss://dot.supercube.pro/ws",
       "from": "12pkkkKCovEzByPTjjK1qtKwPi1Pto1AX519UxTU4FJx6iGJ",
       "opts": {
         "MultiSignAddress": "0x83b0e4664507e7072dd2b30e9c5f68a708979e741a965048fb1ccbc61bd331f5",

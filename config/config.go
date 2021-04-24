@@ -6,7 +6,6 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/rjman-self/platdot-utils/msg"
 	"os"
 	"path/filepath"
@@ -94,21 +93,6 @@ func (c *Config) validate() error {
 		}
 		if chain.From == "" {
 			return fmt.Errorf("required field chain.From empty for chain %s", chain.Id)
-		}
-
-		if len(chain.From) > 3 && chain.From[:3] == chain.Opts["prefix"] {
-			addr, _ := ethcommon.PlatonToEth(chain.From)
-			chain.From = string(addr)
-		}
-		if len(chain.Opts["bridge"]) > 3 && chain.Opts["bridge"][:3] == chain.Opts["prefix"] {
-			addr, _ := ethcommon.PlatonToEth(chain.Opts["bridge"])
-			address := ethcommon.BytesToAddress(addr)
-			chain.Opts["bridge"] = address.String()
-		}
-		if len(chain.Opts["erc20Handler"]) > 3 && chain.Opts["erc20Handler"][:3] == chain.Opts["prefix"] {
-			addr, _ := ethcommon.PlatonToEth(chain.Opts["erc20Handler"])
-			address := ethcommon.BytesToAddress(addr)
-			chain.Opts["erc20Handler"] = address.String()
 		}
 	}
 	return nil

@@ -210,8 +210,9 @@ func (w *writer) redeemTx(m msg.Message) (bool, MultiSignTx) {
 
 	amount := big.NewInt(0).SetBytes(m.Payload[0].([]byte))
 	destAddress := string(m.Payload[1].([]byte))
-	multiAddressRecipient, _ := types.NewMultiAddressFromHexAccountID(string(m.Payload[1].([]byte)))
-	addressRecipient, _ := types.NewAddressFromHexAccountID(string(m.Payload[1].([]byte)))
+	multiAddressRecipient := types.NewMultiAddressFromAccountID(m.Payload[1].([]byte))
+	addressRecipient := types.NewAddressFromAccountID(m.Payload[1].([]byte))
+
 	actualAmount := big.NewInt(0)
 
 	// Get parameters of Balances.Transfer Call
@@ -271,6 +272,7 @@ func (w *writer) redeemTx(m msg.Message) (bool, MultiSignTx) {
 			/// ChainX XBTC2.0 Address
 			//multiAddressRecipient,
 			/// ChainX XBTC1.0 Address
+			uint8(255),
 			addressRecipient,
 			assetId,
 			sendAmount,
@@ -346,27 +348,50 @@ func (w *writer) redeemTx(m msg.Message) (bool, MultiSignTx) {
 
 func (w *writer) submitTx(c types.Call) {
 	// BEGIN: Get the essential information first
-	w.UpdateMetadate()
+	var api *gsrpc.SubstrateAPI
+	var err error
+
+	switch w.listener.chainId {
+	case config.ChainX:
+		api, err = gsrpc.NewSubstrateAPI("wss://chainx.supercube.pro/ws")
+		if err != nil {
+			fmt.Printf("New api error: %v\n", err)
+		}
+	case config.Polkadot:
+		api = w.msApi
+	case config.Kusama:
+		api = w.msApi
+	default:
+		api = w.msApi
+	}
+
 	retryTimes := BlockRetryLimit
 	for {
 		// No more retries, stop submitting Tx
 		if retryTimes == 0 {
 			fmt.Printf("submit Tx failed, check it\n")
 		}
-		genesisHash, err := w.msApi.RPC.Chain.GetBlockHash(0)
+
+		meta, err := api.RPC.State.GetMetadataLatest()
+		if err != nil {
+			fmt.Printf("Get Metadata Latest err\n")
+			retryTimes--
+			continue
+		}
+		genesisHash, err := api.RPC.Chain.GetBlockHash(0)
 		if err != nil {
 			fmt.Printf("GetBlockHash err\n")
 			retryTimes--
 			continue
 		}
-		rv, err := w.msApi.RPC.State.GetRuntimeVersionLatest()
+		rv, err := api.RPC.State.GetRuntimeVersionLatest()
 		if err != nil {
 			fmt.Printf("GetRuntimeVersionLatest err\n")
 			retryTimes--
 			continue
 		}
 
-		key, err := types.CreateStorageKey(w.meta, "System", "Account", w.relayer.kr.PublicKey, nil)
+		key, err := types.CreateStorageKey(meta, "System", "Account", w.relayer.kr.PublicKey, nil)
 		if err != nil {
 			fmt.Printf("CreateStorageKey err\n")
 			retryTimes--
@@ -376,7 +401,7 @@ func (w *writer) submitTx(c types.Call) {
 
 		// Validate account and get account information
 		var accountInfo types.AccountInfo
-		ok, err := w.msApi.RPC.State.GetStorageLatest(key, &accountInfo)
+		ok, err := api.RPC.State.GetStorageLatest(key, &accountInfo)
 		if err != nil || !ok {
 			fmt.Printf("GetStorageLatest err\n")
 			retryTimes--
@@ -417,7 +442,7 @@ func (w *writer) submitTx(c types.Call) {
 		}
 
 		// Do the transfer and track the actual status
-		_, err = w.msApi.RPC.Author.SubmitAndWatchExtrinsic(ext)
+		_, err = api.RPC.Author.SubmitAndWatchExtrinsic(ext)
 		if err != nil {
 			w.log.Error("Submit extrinsic failed", "Failed", err, "Nonce", nonce)
 		}
