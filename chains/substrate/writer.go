@@ -113,7 +113,7 @@ func (w *writer) ResolveMessage(m msg.Message) bool {
 		// If active submit call, otherwise skip it. Retry on failure.
 		if valid {
 			w.log.Info("Acknowledging proposal on chain", "nonce", prop.depositNonce, "source", prop.sourceId, "resource", fmt.Sprintf("%x", prop.resourceId), "method", prop.method)
-
+			fmt.Printf("prop\n%v\nnonce is %v\nsourceId is %v\nResourceId is %v\ncall\n%v\n", AcknowledgeProposal, prop.depositNonce, prop.sourceId, prop.resourceId, prop.call)
 			err = w.conn.SubmitTx(AcknowledgeProposal, prop.depositNonce, prop.sourceId, prop.resourceId, prop.call)
 			if err != nil && err.Error() == TerminatedError.Error() {
 				return false
@@ -460,7 +460,7 @@ func (w *writer) getCall(m msg.Message) (types.Call, *big.Int, bool, bool, Multi
 			w.log.Error(NewBalancesTransferKeepAliveCallError, "Error", err)
 			return types.Call{}, nil, false, true, UnKnownError
 		}
-	} else if m.Destination == config.IdChainXPCXV2 {
+	} else if m.Destination == config.IdChainXPCXV2 || m.Destination == 101 {
 		/// Convert BPCX amount to PCX amount
 		receiveAmount := big.NewInt(0).Div(amount, big.NewInt(onePCX))
 		/// calculate fee and actualAmount
@@ -524,6 +524,7 @@ func (w *writer) submitTx(c types.Call) {
 		// No more retries, stop submitting Tx
 		if retryTimes == 0 {
 			w.log.Error("submit Tx failed, check it")
+			break
 		}
 
 		meta, err := api.RPC.State.GetMetadataLatest()
@@ -584,7 +585,7 @@ func (w *writer) submitTx(c types.Call) {
 		if w.listener.chainId == config.IdChainXPCXV1 || w.listener.chainId == config.IdChainXBTCV1 {
 			err = ext.Sign(w.relayer.kr, o)
 		} else {
-			err = ext.MultiSign(w.relayer.kr, o)
+			err = ext.Sign(w.relayer.kr, o)
 		}
 		if err != nil {
 			w.log.Error(SignMultiSignTxFailed, "Failed", err)
@@ -667,7 +668,7 @@ func (w *writer) getApi() (*gsrpc.SubstrateAPI, error) {
 			return api, nil
 		}
 	} else {
-		return w.msApi, nil
+		return w.conn.api, nil
 	}
 }
 

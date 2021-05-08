@@ -23,8 +23,6 @@ import (
 
 	"github.com/ChainSafe/log15"
 	"github.com/Rjman-self/BBridge/chains"
-	gsrpc "github.com/centrifuge/go-substrate-rpc-client/v3"
-	types3 "github.com/centrifuge/go-substrate-rpc-client/v3/types"
 	"github.com/rjman-self/sherpax-utils/blockstore"
 	metrics "github.com/rjman-self/sherpax-utils/metrics/types"
 	"github.com/rjman-self/sherpax-utils/msg"
@@ -206,8 +204,8 @@ func (l *listener) pollBlocks() error {
 		default:
 			// No more retries, goto next block
 			if retry == 0 {
-				l.sysErr <- fmt.Errorf("event polling retries exceeded (chain=%d, name=%s)", l.chainId, l.name)
-				return nil
+				//l.sysErr <- fmt.Errorf("event polling retries exceeded (chain=%d, name=%s)", l.chainId, l.name)
+				return fmt.Errorf("event polling retries exceeded (chain=%d, name=%s)", l.chainId, l.name)
 			}
 
 			/// Get finalized block hash
@@ -267,6 +265,8 @@ func (l *listener) pollBlocks() error {
 				continue
 			}
 
+			/// Deal cross tx
+			fmt.Printf("--------------\n")
 			err = l.processEvents(hash)
 			if err != nil {
 				l.log.Error("Failed to process events in block", "block", currentBlock, "err", err)
@@ -321,23 +321,18 @@ func (l *listener) processBlock(currentBlock int64) error {
 
 
 // processEvents fetches a block and parses out the events, calling Listener.handleEvents()
-func (l *listener) processEvents(hash types3.Hash) error {
+func (l *listener) processEvents(hash types.Hash) error {
 	l.log.Trace("Fetching block for events", "hash", hash.Hex())
-
-	api, err := gsrpc.NewSubstrateAPI(l.conn.url)
-	if err != nil {
-		l.logErr("New api Err", err)
-	}
 
 	meta := l.conn.getMetadata()
 
-	key, err := types3.CreateStorageKey(&meta, "System", "Events", nil, nil)
+	key, err := types.CreateStorageKey(&meta, "System", "Events", nil, nil)
 	if err != nil {
 		return err
 	}
 
-	var records types3.EventRecordsRaw
-	_, err = api.RPC.State.GetStorage(key, &records, types3.Hash(hash))
+	var records types.EventRecordsRaw
+	_, err = l.conn.api.RPC.State.GetStorage(key, &records, hash)
 	if err != nil {
 		return err
 	}

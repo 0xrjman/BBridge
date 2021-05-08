@@ -5,6 +5,7 @@ package substrate
 
 import (
 	"bytes"
+	"github.com/Rjman-self/BBridge/config"
 	"github.com/centrifuge/go-substrate-rpc-client/v3/scale"
 	"github.com/centrifuge/go-substrate-rpc-client/v3/types"
 	"github.com/rjman-self/sherpax-utils/msg"
@@ -247,7 +248,18 @@ func (w *writer) createNativeTx(m msg.Message) {
 func (w *writer) createFungibleProposal(m msg.Message) (*proposal, error) {
 	bigAmt := big.NewInt(0).SetBytes(m.Payload[0].([]byte))
 	amount := types.NewU128(*bigAmt)
-	recipient := types.NewAccountID(m.Payload[1].([]byte))
+
+	var multiAddressRecipient types.MultiAddress
+	//var addressRecipient types.Address
+
+	if m.Source == config.IdBSC {
+		multiAddressRecipient = types.NewMultiAddressFromAccountID(m.Payload[1].([]byte))
+		//addressRecipient = types.NewAddressFromAccountID(m.Payload[1].([]byte))
+	} else {
+		multiAddressRecipient, _ = types.NewMultiAddressFromHexAccountID(string(m.Payload[1].([]byte)))
+		//addressRecipient, _ = types.NewAddressFromHexAccountID(string(m.Payload[1].([]byte)))
+	}
+
 	depositNonce := types.U64(m.DepositNonce)
 
 	w.UpdateMetadata()
@@ -259,9 +271,10 @@ func (w *writer) createFungibleProposal(m msg.Message) (*proposal, error) {
 	call, err := types.NewCall(
 		w.meta,
 		method,
-		recipient,
+		multiAddressRecipient,
 		amount,
 	)
+
 	if err != nil {
 		return nil, err
 	}
@@ -284,7 +297,18 @@ func (w *writer) createFungibleProposal(m msg.Message) (*proposal, error) {
 
 func (w *writer) createNonFungibleProposal(m msg.Message) (*proposal, error) {
 	tokenId := types.NewU256(*big.NewInt(0).SetBytes(m.Payload[0].([]byte)))
-	recipient := types.NewAccountID(m.Payload[1].([]byte))
+
+	var multiAddressRecipient types.MultiAddress
+	//var addressRecipient types.Address
+
+	if m.Source == config.IdBSC {
+		multiAddressRecipient = types.NewMultiAddressFromAccountID(m.Payload[1].([]byte))
+		//addressRecipient = types.NewAddressFromAccountID(m.Payload[1].([]byte))
+	} else {
+		multiAddressRecipient, _ = types.NewMultiAddressFromHexAccountID(string(m.Payload[1].([]byte)))
+		//addressRecipient, _ = types.NewAddressFromHexAccountID(string(m.Payload[1].([]byte)))
+	}
+
 	metadata := types.Bytes(m.Payload[2].([]byte))
 	depositNonce := types.U64(m.DepositNonce)
 
@@ -297,7 +321,7 @@ func (w *writer) createNonFungibleProposal(m msg.Message) (*proposal, error) {
 	call, err := types.NewCall(
 		w.meta,
 		method,
-		recipient,
+		multiAddressRecipient,
 		tokenId,
 		metadata,
 	)
