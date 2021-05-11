@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"github.com/JFJun/go-substrate-crypto/ss58"
 	"github.com/Rjman-self/BBridge/config"
-	utils "github.com/Rjman-self/BBridge/shared/substrate"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rjman-self/substrate-go/expand"
 	"github.com/rjman-self/substrate-go/expand/base"
+	"github.com/rjman-self/substrate-go/expand/chainx"
 	"github.com/rjman-self/substrate-go/models"
 	"strconv"
 
@@ -337,7 +337,7 @@ func (l *listener) processEvents(hash types.Hash) error {
 		return err
 	}
 
-	e := utils.Events{}
+	e := chainx.ChainXEventRecords{}
 	err = records.DecodeEventRecords(&meta, &e)
 	if err != nil {
 		return err
@@ -350,7 +350,7 @@ func (l *listener) processEvents(hash types.Hash) error {
 }
 
 // handleEvents calls the associated handler for all registered event types
-func (l *listener) handleEvents(evts utils.Events) {
+func (l *listener) handleEvents(evts chainx.ChainXEventRecords) {
 	if l.subscriptions[FungibleTransfer] != nil {
 		for _, evt := range evts.ChainBridge_FungibleTransfer {
 			l.log.Trace("Handling FungibleTransfer event")
